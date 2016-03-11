@@ -1,0 +1,5 @@
+.*.swp
+*.o
+test
+test.bin
+test.dis
