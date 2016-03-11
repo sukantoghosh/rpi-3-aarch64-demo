@@ -34,3 +34,11 @@ master_cpu:
 	bl main
 hang:
 	b hang
+
+.ltorg
+
+.org 0x100
+.globl _atags
+atags:
+
+.org 0x8000
