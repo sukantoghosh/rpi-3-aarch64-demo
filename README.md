@@ -6,7 +6,9 @@ upstream AArch32 port of U-Boot to the Raspberry Pi:
 * git://git.denx.de/u-boot.git
 * git://github.com/swarren/u-boot.git
 
-To build, simply run `./build.sh`. This was tested on Ubuntu 14.04.
+To build, simply run `./build.sh`. This was tested on Ubuntu 14.04/16.04. You
+will need an aarch64-linux-gnu-gcc binary (i.e. gcc-aarch64-linux-gnu package)
+or equivalent.
 
 To make a bootable SD card, start with a recent Raspbian image, then:
 * Copy config.txt to the boot partition.
