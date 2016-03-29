@@ -8,24 +8,24 @@
  * SPDX-License-Identifier:	GPL-2.0
  */
 
-typedef unsigned int u32;
+#include <stdint.h>
 
 #define BIT(x) (1 << (x))
 
 #define BCM2835_MU_BASE			0x3f215040
 
 struct bcm283x_mu_regs {
-	u32 io;
-	u32 iir;
-	u32 ier;
-	u32 lcr;
-	u32 mcr;
-	u32 lsr;
-	u32 msr;
-	u32 scratch;
-	u32 cntl;
-	u32 stat;
-	u32 baud;
+	uint32_t io;
+	uint32_t iir;
+	uint32_t ier;
+	uint32_t lcr;
+	uint32_t mcr;
+	uint32_t lsr;
+	uint32_t msr;
+	uint32_t scratch;
+	uint32_t cntl;
+	uint32_t stat;
+	uint32_t baud;
 };
 
 /* This actually means not full, but is named not empty in the docs */
@@ -39,8 +39,8 @@ struct bcm283x_mu_regs {
 #define __iormb()	dmb()
 #define __iowmb()	dmb()
 
-#define readl(c)	({ u32 __v = __arch_getl(c); __iormb(); __v; })
-#define writel(v,c)	({ u32 __v = v; __iowmb(); __arch_putl(__v,c); __v; })
+#define readl(c)	({ uint32_t __v = __arch_getl(c); __iormb(); __v; })
+#define writel(v,c)	({ uint32_t __v = v; __iowmb(); __arch_putl(__v,c); __v; })
 
 static void bcm283x_mu_serial_putc(const char data)
 {
@@ -60,8 +60,84 @@ void dbg_puts(const char *s)
 		bcm283x_mu_serial_putc(*s++);
 }
 
+void dbg_puthex4(int val)
+{
+	int c;
+
+	if (val < 10)
+		c = val + '0';
+	else
+		c = val - 10 + 'A';
+
+	bcm283x_mu_serial_putc(c);
+}
+
+void dbg_puthex32(uint32_t val)
+{
+	for (int i = 28; i >= 0; i -= 4)
+		dbg_puthex4((val >> i) & 0xf);
+}
+
+void dbg_puthex64(uint64_t val)
+{
+	dbg_puthex32(val >> 32);
+	dbg_puthex32(val & 0xffffffffU);
+}
+
+uint64_t read_mpidr(void)
+{
+	uint64_t v;
+	__asm__ __volatile__("mrs %0, mpidr_el1" : "=r" (v) : : );
+	return v;
+}
+
+uint64_t read_currentel(void)
+{
+	uint64_t v;
+	__asm__ __volatile__("mrs %0, currentel" : "=r" (v) : : );
+	return v;
+}
+
+uint64_t read_spsel(void)
+{
+	uint64_t v;
+	__asm__ __volatile__("mrs %0, spsel" : "=r" (v) : : );
+	return v;
+}
+
 void main(void)
 {
-	while (1)
-		dbg_puts("Hello, world!\r\n");
+	static int this_cpuid = -1;
+	uint64_t v;
+
+	this_cpuid++;
+
+	dbg_puts("Hello, world!\r\n");
+
+	dbg_puts("this_cpuid:");
+	dbg_puthex4(this_cpuid);
+	dbg_puts("\r\n");
+
+	dbg_puts("MPIDR:");
+	v = read_mpidr();
+	dbg_puthex64(v);
+	dbg_puts("\r\n");
+
+	dbg_puts("CurrentEL:");
+	v = read_currentel();
+	dbg_puthex4(v);
+	dbg_puts("\r\n");
+
+	dbg_puts("SPSel:");
+	v = read_spsel();
+	dbg_puthex4(v);
+	dbg_puts("\r\n");
+
+	if (this_cpuid < 3) {
+		unsigned long long *spin_table = (void *)0xd8;
+		spin_table[this_cpuid + 1] = 0x8000;
+	}
+
+	while (1) {
+	}
 }
