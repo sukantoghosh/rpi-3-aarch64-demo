@@ -1,8 +1,15 @@
-This code is about the simplest possible to demonstrate AArch64 code running
-on the Raspberry Pi 3.
+This repository contains a proposed "ARM boot stub" for the Raspberry Pi 3
+running in AArch64 mode. It is anticipated the boot stub will be integrated
+into the VC FW. A very simple test application is included to demonstrate its
+use.
 
-Most of the code is stolen from U-Boot, including some from my not-yet-
-upstream AArch32 port of U-Boot to the Raspberry Pi:
+The ARM boot stub was inspired by the AArch32 boot stub code that the
+Raspberry Pi Foundation published at my request in
+https://github.com/raspberrypi/firmware/issues/579
+The license/copyright match their code release.
+
+Some of the application code is stolen from U-Boot, including some from my
+not-yet-upstream AArch32 port of U-Boot to the Raspberry Pi:
 * git://git.denx.de/u-boot.git
 * git://github.com/swarren/u-boot.git
 
@@ -10,7 +17,8 @@ To build, simply run `./build.sh`. This was tested on Ubuntu 14.04/16.04. You
 will need an aarch64-linux-gnu-gcc binary (i.e. gcc-aarch64-linux-gnu package)
 or equivalent.
 
-To make a bootable SD card, start with a recent Raspbian image, then:
+To make a bootable SD card, start with a recent Raspbian image, update all the
+firmware files to the latest from firmware.git, then:
 * Copy config.txt to the boot partition.
 * Delete `kernel.img` from the boot partition.
 * Copy `test.bin` to the boot partition as `kernel7.img`.
