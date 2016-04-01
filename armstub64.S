@@ -29,7 +29,7 @@
 
 #define BIT(x) (1 << (x))
 
-#define OSC_FREQ		19200000
+#define OSC_FREQ		1000000
 
 #define SCR_RW			BIT(10)
 #define SCR_HCE			BIT(8)
