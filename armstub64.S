@@ -40,6 +40,9 @@
 #define SCR_VAL \
     (SCR_RW | SCR_HCE | SCR_SMD | SCR_RES1_5 | SCR_RES1_4 | SCR_NS)
 
+#define CPUECTLR_EL1		S3_1_C15_C2_1
+#define CPUECTLR_EL1_SMPEN	BIT(6)
+
 #define SPSR_EL3_D		BIT(9)
 #define SPSR_EL3_A		BIT(8)
 #define SPSR_EL3_I		BIT(7)
@@ -66,6 +69,10 @@ _start:
 	mov x0, #SCR_VAL
 	msr SCR_EL3, x0
 
+	/* Set SMPEN */
+	mov x0, #CPUECTLR_EL1_SMPEN
+	msr CPUECTLR_EL1, x0
+
 	/* Switch to EL2 */
 	mov x0, #SPSR_EL3_VAL
 	msr spsr_el3, x0
@@ -78,16 +85,10 @@ in_el2:
 	and x6, x6, #0x3
 	cbz x6, primary_cpu
 
-	adr x5, spin_table
-	add x6, x6, x6 // *2
-	add x6, x6, x6 // *4
-	add x6, x6, x6 // *8
-	add x5, x5, x6
+	adr x5, spin_table - 8
 secondary_spin:
-#if 0
 	wfe
-#endif
-	ldr x4, [x5]
+	ldr x4, [x5, x6, lsl #3]
 	cmp x4, #0
 	cbz x4, secondary_spin
 	mov x0, #0
@@ -105,10 +106,9 @@ boot_kernel:
 
 .ltorg
 
-.org 0xd8
+.org 0xe0
 .globl spin_table
 spin_table:
-	.quad 0 // CPU 0 @ 0xd8
 	.quad 0 // CPU 1 @ 0xe0
 	.quad 0 // CPU 2 @ 0xe8
 	.quad 0 // CPU 3 @ 0xf0

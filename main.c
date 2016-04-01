@@ -105,12 +105,16 @@ uint64_t read_spsel(void)
 	return v;
 }
 
-void main(void)
+void main(uint32_t r0, uint32_t r1, uint32_t r2, uint32_t r3)
 {
 	static int this_cpuid = -1;
 	uint64_t v;
 
 	this_cpuid++;
+
+	/* LF after line noise */
+	if (!this_cpuid)
+		dbg_puts("\r\n");
 
 	dbg_puts("Hello, world!\r\n");
 
@@ -121,6 +125,22 @@ void main(void)
 	dbg_puts("MPIDR:");
 	v = read_mpidr();
 	dbg_puthex64(v);
+	dbg_puts("\r\n");
+
+	dbg_puts("r0:");
+	dbg_puthex64(r0);
+	dbg_puts("\r\n");
+
+	dbg_puts("r1:");
+	dbg_puthex64(r1);
+	dbg_puts("\r\n");
+
+	dbg_puts("r2:");
+	dbg_puthex64(r2);
+	dbg_puts("\r\n");
+
+	dbg_puts("r3:");
+	dbg_puthex64(r3);
 	dbg_puts("\r\n");
 
 	dbg_puts("CurrentEL:");
@@ -136,6 +156,7 @@ void main(void)
 	if (this_cpuid < 3) {
 		unsigned long long *spin_table = (void *)0xd8;
 		spin_table[this_cpuid + 1] = 0x8000;
+		__asm__ __volatile__("sev");
 	}
 
 	while (1) {
