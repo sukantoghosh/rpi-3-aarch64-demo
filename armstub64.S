@@ -73,6 +73,13 @@ _start:
 	mov x0, #CPUECTLR_EL1_SMPEN
 	msr CPUECTLR_EL1, x0
 
+	/*
+	 * Set up SCTLR_EL2
+	 * All set bits below are res1. LE, no WXN/I/SA/C/A/M
+	 */
+	ldr x0, =0x30c50830
+	msr SCTLR_EL2, x0
+
 	/* Switch to EL2 */
 	mov x0, #SPSR_EL3_VAL
 	msr spsr_el3, x0
