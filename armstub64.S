@@ -89,7 +89,6 @@ in_el2:
 secondary_spin:
 	wfe
 	ldr x4, [x5, x6, lsl #3]
-	cmp x4, #0
 	cbz x4, secondary_spin
 	mov x0, #0
 	b boot_kernel
