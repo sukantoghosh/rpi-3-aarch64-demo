@@ -74,7 +74,9 @@ void dbg_puthex4(int val)
 
 void dbg_puthex32(uint32_t val)
 {
-	for (int i = 28; i >= 0; i -= 4)
+	int i;
+
+	for (i = 28; i >= 0; i -= 4)
 		dbg_puthex4((val >> i) & 0xf);
 }
 
