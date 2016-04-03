@@ -30,6 +30,6 @@
 _start:
 	ldr x5, =0x00100000
 	mov sp, x5
-	bl main
+	bl app
 hang:
 	b hang

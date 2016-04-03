@@ -11,8 +11,8 @@ ${CROSS_COMPILE}objcopy --gap-fill=0xff -j .text -j .rodata -j .data -O binary a
 ${CROSS_COMPILE}objdump -d armstub64.elf > armstub64.dis
 
 ${CROSS_COMPILE}gcc -c -o start.o start.S
-${CROSS_COMPILE}gcc -c -o main.o main.c
-${CROSS_COMPILE}ld -Bstatic --gc-sections -nostartfiles -nostdlib -o app.elf -Ttext 0x8000 -T app.lds start.o main.o
+${CROSS_COMPILE}gcc -c -std=gnu99 -Wall -o app.o app.c
+${CROSS_COMPILE}ld -Bstatic --gc-sections -nostartfiles -nostdlib -o app.elf -Ttext 0x8000 -T app.lds start.o app.o
 ${CROSS_COMPILE}objcopy --gap-fill=0xff -j .text -j .rodata -j .data -O binary app.elf app.bin
 ${CROSS_COMPILE}objdump -d app.elf > app.dis
 

@@ -105,7 +105,7 @@ uint64_t read_spsel(void)
 	return v;
 }
 
-void main(uint32_t r0, uint32_t r1, uint32_t r2, uint32_t r3)
+void app(uint32_t r0, uint32_t r1, uint32_t r2, uint32_t r3)
 {
 	static int this_cpuid = -1;
 	uint64_t v;

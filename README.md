@@ -9,16 +9,17 @@ https://github.com/raspberrypi/firmware/issues/579
 The license/copyright match their code release.
 
 Some of the application code is stolen from U-Boot, including some from my
-not-yet-upstream AArch32 port of U-Boot to the Raspberry Pi:
+recently upstreamed AArch32 port of U-Boot to the Raspberry Pi:
 * git://git.denx.de/u-boot.git
 * git://github.com/swarren/u-boot.git
 
-To build, simply run `./build.sh`. This was tested on Ubuntu 14.04/16.04. You
-will need an aarch64-linux-gnu-gcc binary (i.e. gcc-aarch64-linux-gnu package)
-or equivalent.
+To build, simply run `./build.sh`. This was tested on Ubuntu 16.04. You will
+need an aarch64-linux-gnu-gcc binary (i.e. gcc-aarch64-linux-gnu package) or
+equivalent.
 
 To make a bootable SD card, start with a recent Raspbian image, update all the
-firmware files to the latest from firmware.git, then:
+firmware files to the latest from firmware.git (I tested with  046effa
+"firmware: arm_loader: emmc clock depends on core clock See: #572", then:
 * Copy config.txt to the boot partition.
 * Delete `kernel.img` from the boot partition.
 * Copy `test.bin` to the boot partition as `kernel7.img`.
