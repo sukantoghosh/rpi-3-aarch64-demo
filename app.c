@@ -5,6 +5,13 @@
  * (C) Copyright 2012-2016 Stephen Warren
  * Copyright (C) 1996-2000 Russell King
  *
+ * (C) Copyright 2000
+ * Rob Taylor, Flying Pig Systems. robt@flyingpig.com.
+ *
+ * (C) Copyright 2004
+ * ARM Ltd.
+ * Philippe Robin, <philippe.robin@arm.com>
+ *
  * SPDX-License-Identifier:	GPL-2.0
  */
 
@@ -12,6 +19,21 @@
 
 #define BIT(x) (1 << (x))
 
+#define __arch_getl(a)			(*(volatile unsigned int *)(a))
+#define __arch_putl(v,a)		(*(volatile unsigned int *)(a) = (v))
+#define __arch_getb(a)			(*(volatile unsigned char *)(a))
+#define __arch_putb(v,a)		(*(volatile unsigned char *)(a) = (v))
+
+#define dmb()		__asm__ __volatile__ ("" : : : "memory")
+#define __iormb()	dmb()
+#define __iowmb()	dmb()
+
+#define readl(c)	({ uint32_t __v = __arch_getl(c); __iormb(); __v; })
+#define writel(v,c)	({ uint32_t __v = v; __iowmb(); __arch_putl(__v,c); __v; })
+#define readb(c)	({ uint8_t __v = __arch_getb(c); __iormb(); __v; })
+#define writeb(v,c)	({ uint8_t __v = v; __iowmb(); __arch_putb(__v,c); __v; })
+
+#if 0
 #define BCM2835_MU_BASE			0x3f215040
 
 struct bcm283x_mu_regs {
@@ -32,16 +54,6 @@ struct bcm283x_mu_regs {
 #define BCM283X_MU_LSR_TX_EMPTY		BIT(5)
 #define BCM283X_MU_LSR_RX_READY		BIT(0)
 
-#define __arch_getl(a)			(*(volatile unsigned int *)(a))
-#define __arch_putl(v,a)		(*(volatile unsigned int *)(a) = (v))
-
-#define dmb()		__asm__ __volatile__ ("" : : : "memory")
-#define __iormb()	dmb()
-#define __iowmb()	dmb()
-
-#define readl(c)	({ uint32_t __v = __arch_getl(c); __iormb(); __v; })
-#define writel(v,c)	({ uint32_t __v = v; __iowmb(); __arch_putl(__v,c); __v; })
-
 static void bcm283x_mu_serial_putc(const char data)
 {
 	struct bcm283x_mu_regs *regs = (struct bcm283x_mu_regs *)BCM2835_MU_BASE;
@@ -54,10 +66,51 @@ static void bcm283x_mu_serial_putc(const char data)
 	writel(data, &regs->io);
 }
 
+#define putc	bcm283x_mu_serial_putc
+#else
+#define PL01x_BASE		0x3f201000
+
+struct pl01x_regs {
+	uint32_t	dr;		/* 0x00 Data register */
+	uint32_t	ecr;		/* 0x04 Error clear register (Write) */
+	uint32_t	pl010_lcrh;	/* 0x08 Line control register, high byte */
+	uint32_t	pl010_lcrm;	/* 0x0C Line control register, middle byte */
+	uint32_t	pl010_lcrl;	/* 0x10 Line control register, low byte */
+	uint32_t	pl010_cr;	/* 0x14 Control register */
+	uint32_t	fr;		/* 0x18 Flag register (Read only) */
+#ifdef CONFIG_PL011_SERIAL_RLCR
+	uint32_t	pl011_rlcr;	/* 0x1c Receive line control register */
+#else
+	uint32_t	reserved;
+#endif
+	uint32_t	ilpr;		/* 0x20 IrDA low-power counter register */
+	uint32_t	pl011_ibrd;	/* 0x24 Integer baud rate register */
+	uint32_t	pl011_fbrd;	/* 0x28 Fractional baud rate register */
+	uint32_t	pl011_lcrh;	/* 0x2C Line control register */
+	uint32_t	pl011_cr;	/* 0x30 Control register */
+};
+
+#define UART_PL01x_FR_TXFF              0x20
+
+static void bcm283x_pl01x_serial_putc(const char data)
+{
+	struct pl01x_regs *regs = (struct pl01x_regs *)PL01x_BASE;
+
+	/* Wait until there is space in the FIFO */
+	while (readl(&regs->fr) & UART_PL01x_FR_TXFF)
+		;
+
+	/* Send the character */
+	writel(data, &regs->dr);
+}
+
+#define putc	bcm283x_pl01x_serial_putc
+#endif
+
 void dbg_puts(const char *s)
 {
 	while (*s)
-		bcm283x_mu_serial_putc(*s++);
+		putc(*s++);
 }
 
 void dbg_puthex4(int val)
@@ -69,7 +122,7 @@ void dbg_puthex4(int val)
 	else
 		c = val - 10 + 'A';
 
-	bcm283x_mu_serial_putc(c);
+	putc(c);
 }
 
 void dbg_puthex32(uint32_t val)
