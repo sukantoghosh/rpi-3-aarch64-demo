@@ -17,3 +17,4 @@ ${CROSS_COMPILE}objcopy --gap-fill=0xff -j .text -j .rodata -j .data -O binary a
 ${CROSS_COMPILE}objdump -d app.elf > app.dis
 
 cat armstub64.bin app.bin > test.bin
+cat test.bin knlinfo_footer.bin > kernel7.img
